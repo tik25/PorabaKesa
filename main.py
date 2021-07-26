@@ -7,6 +7,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import date
 
 # img
 import cv2
@@ -50,6 +51,16 @@ if __name__ == '__main__':
     # print("od {} do {}".format(data["Datum"][0], data["Datum"][N-1]))
     # calculate total
     skupaj = sum(data["Cena"])
+    # kolk je avg na dan
+    mesci = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    prvi = data["Datum"][0]
+    # zadni = data["Datum"][N - 1]
+    prvidan, prvimesc, prvileto = prvi.split(".")
+    zadnileto, zadnimesc, zadnidan = str(date.today()).split("-")
+    prvi = date(int(prvileto), int(prvimesc), int(prvidan))
+    zadni = date(int(zadnileto), int(zadnimesc), int(zadnidan))
+    delta = zadni - prvi
+    naDan = skupaj / delta.days
 
     SumKategorije = {i: 0 for i in data["Kategorije"]}
     SumKategorije.pop(np.nan)  # remove nepotrebn nan key
@@ -70,7 +81,7 @@ if __name__ == '__main__':
     y = SumKategorije.values()
     labels = ["{} = {:.2f}".format(ime1, SumKategorije[ime1]) for ime1 in SumKategorije.keys()]
 
-    plt.title("skupaj = {:.2f}".format(skupaj, data["Datum"][0], data["Datum"][N - 1]))
+    plt.title("skupaj = {:.2f}".format(skupaj, data["Datum"][0], ",".join([zadnidan, zadnimesc, zadnileto])))
     plt.pie(y, labels=labels)
     plt.tight_layout()
     plt.savefig("pie.png")
@@ -86,6 +97,7 @@ if __name__ == '__main__':
                     templist.append(data["Produkt"][i])
         ItemsKategorije[kategorija] = templist
     ItemsKategorije.pop(np.nan)  # remove nepotrebn nan key
+
 
     # ---makepdf
     # fronpage
@@ -111,6 +123,17 @@ if __name__ == '__main__':
         pdf.set_font("Arial", size=12)
         pdf.multi_cell(200, 10, txt=", ".join(ItemsKategorije[i]), align='L')
         pdf.cell(200, 10, txt="", ln=1, align='L')
+    pdf.add_page()
+    pdf.set_font("Arial", size=16)
+    pdf.cell(200, 10, txt="Stats:", ln=1, align='C')
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="* na dan povp. = {:.2f}".format(naDan), ln=1, align='L')
+    # tuki se kake statse dodas z > pdf.cell(200, 10, txt= "***" , ln=1, align='L')
+
+    # slike
+    pdf.cell(200, 10, txt="\n", ln=1, align='C')
+    pdf.cell(200, 10, txt="===================================================================", ln=1, align='C')
+    pdf.cell(200, 10, txt="\n", ln=1, align='C')
     pdf.image("pie.png", 1)
 
     # ---save pdf
