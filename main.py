@@ -28,7 +28,14 @@ artikliThresh = 30
 # ------------------------------------------------------
 
 def GetData():
-    data = pd.read_excel('../Data.xlsx')
+    try:
+        data = pd.read_excel('../Data.xlsx')
+    except:
+        try:
+            data = pd.read_excel('Data.xlsx')
+        except:
+            input('Cant find Data.xlsx...\n')
+            exit()
     return data
 
 
